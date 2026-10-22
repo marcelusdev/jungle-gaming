@@ -9,8 +9,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { useNfts } from '../hooks/useNfts'
-import { api } from '../lib/api'
-import type { Order } from '../order'
+import { createOrder, updateOrderStatus } from '../order'
 import { useCart } from '../hooks/useCart'
 import { getCurrentUser } from '../auth'
 
@@ -49,33 +48,31 @@ async function handleConfirmPurchase() {
   setIsSubmitting(true)
 
   try {
-    const response = await api.post<Order>(
-      '/orders',
-      {
-        nftIds: cartNfts.map((nft) => nft.id),
-        wallet: selectedWallet,
-        userId: user.id,
-        simulateDecline,
-      },
-      {
-        headers: {
-          'Idempotency-Key': idempotencyKey.current,
-        },
-      },
+    const order = createOrder(
+      cartNfts,
+      selectedWallet,
+      user.id,
+      idempotencyKey.current,
     )
 
-    const order = response.data
+    const updatedOrder = updateOrderStatus(
+      order.id,
+      simulateDecline ? 'rejected' : 'confirmed',
+    )
 
-    if (order.status === 'confirmed') {
+    if (!updatedOrder) {
+      throw new Error('Não foi possível atualizar o pedido.')
+    }
+
+    if (updatedOrder.status === 'confirmed') {
       clearCart()
-    } else if (order.status === 'rejected') {
-      // Uma nova tentativa deve gerar um novo pedido.
+    } else if (updatedOrder.status === 'rejected') {
       idempotencyKey.current = crypto.randomUUID()
     }
 
     navigate({
       to: '/order-confirmation',
-      search: { orderId: order.id },
+      search: { orderId: updatedOrder.id },
     })
   } catch {
     alert('Não foi possível processar o pedido. Tente novamente.')
