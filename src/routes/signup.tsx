@@ -2,8 +2,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { ArrowLeft, UserPlus } from 'lucide-react'
-import { api } from '../lib/api'
-import { saveSession, type User } from '../auth'
+import { registerUser, saveSession } from '../auth'
 
 export function SignupPage() {
   const navigate = useNavigate()
@@ -25,50 +24,21 @@ export function SignupPage() {
 
     setIsSubmitting(true)
 
-    try {
-      const response = await api.post<User>('/auth/signup', {
-        name,
-        email,
-        password,
-      })
+      try {
+        const user = registerUser(name, email, password)
 
-      saveSession(response.data)
+        saveSession(user)
 
-      navigate({ to: '/' })
-    } catch (err: unknown) {
-      if (
-        typeof err === 'object' &&
-        err !== null &&
-        'response' in err
-      ) {
-        const response = err.response
-
-        if (
-          typeof response === 'object' &&
-          response !== null &&
-          'data' in response
-        ) {
-          const data = response.data
-
-          if (
-            typeof data === 'object' &&
-            data !== null &&
-            'message' in data &&
-            typeof data.message === 'string'
-          ) {
-            setError(data.message)
-          } else {
-            setError('Não foi possível realizar o cadastro.')
-          }
-        } else {
-          setError('Não foi possível realizar o cadastro.')
-        }
-      } else {
-        setError('Não foi possível realizar o cadastro.')
+        navigate({ to: '/' })
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Não foi possível realizar o cadastro.',
+        )
+      } finally {
+        setIsSubmitting(false)
       }
-    } finally {
-      setIsSubmitting(false)
-    }
   }
 
   return (

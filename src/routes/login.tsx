@@ -2,9 +2,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { ArrowLeft, LogIn } from 'lucide-react'
-import { api } from '../lib/api'
-import { saveSession, type User } from '../auth'
-
+import { loginUser, saveSession } from '../auth'
 export function LoginPage() {
   const navigate = useNavigate()
 
@@ -19,48 +17,20 @@ export function LoginPage() {
     setIsSubmitting(true)
 
     try {
-      const response = await api.post<User>('/auth/login', {
-        email,
-        password,
-      })
+      const user = loginUser(email, password)
 
-      saveSession(response.data)
+      saveSession(user)
 
       navigate({ to: '/' })
     } catch (err: unknown) {
-      if (
-        typeof err === 'object' &&
-        err !== null &&
-        'response' in err
-      ) {
-        const response = err.response
-
-        if (
-          typeof response === 'object' &&
-          response !== null &&
-          'data' in response
-        ) {
-          const data = response.data
-
-          if (
-            typeof data === 'object' &&
-            data !== null &&
-            'message' in data &&
-            typeof data.message === 'string'
-          ) {
-            setError(data.message)
-          } else {
-            setError('Não foi possível entrar na sua conta.')
-          }
-        } else {
-          setError('Não foi possível entrar na sua conta.')
-        }
-      } else {
-        setError('Não foi possível entrar na sua conta.')
-      }
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Não foi possível entrar na sua conta.',
+      )
     } finally {
       setIsSubmitting(false)
-    }
+    }  
   }
 
   return (
