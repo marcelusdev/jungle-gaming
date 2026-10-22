@@ -6,7 +6,7 @@ const httpServer = createServer()
 
 const io = new Server(httpServer, {
   cors: {
-    origin: 'http://localhost:5173',
+    origin: true,
     methods: ['GET', 'POST'],
   },
 })
@@ -19,8 +19,10 @@ io.on('connection', (socket) => {
   })
 })
 
-httpServer.listen(3001, () => {
-  console.log('Servidor Socket.IO rodando em http://localhost:3001')
+const PORT = Number(process.env.PORT) || 3001
+
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor Socket.IO rodando na porta ${PORT}`)
 })
 
 // Eventos de demonstração para testar atualizações em tempo real.
