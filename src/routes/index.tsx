@@ -1,101 +1,18 @@
-
 import { useMemo, useState } from 'react'
+import { Header } from '../components/Header'
+import { NFTCard } from '../components/nft-card'
+import { useNfts } from '../hooks/useNfts'
+import { useCart } from '../hooks/useCart'
 import {
   Search,
   ShoppingBag,
-  UserRound,
-  Heart,
   SlidersHorizontal,
   ArrowUpRight,
   ChevronDown,
-  Menu,
   Sparkles,
-  Wallet,
   X,
 } from 'lucide-react'
 
-const nfts = [
-  {
-    id: 1,
-    name: 'Emerald Ape',
-    collection: 'Jungle Legends',
-    price: '0.85',
-    category: 'Colecionáveis',
-    art: '🦍',
-    background: 'from-emerald-950 via-green-800 to-lime-500',
-    tag: 'POPULAR',
-  },
-  {
-    id: 2,
-    name: 'Cosmic Bloom',
-    collection: 'Digital Dreams',
-    price: '0.42',
-    category: 'Arte',
-    art: '🌌',
-    background: 'from-violet-950 via-purple-700 to-fuchsia-400',
-    tag: '',
-  },
-  {
-    id: 3,
-    name: 'Violet Nomad',
-    collection: 'Mystic Creatures',
-    price: '1.20',
-    category: 'Gaming',
-    art: '🧙',
-    background: 'from-indigo-950 via-violet-800 to-purple-400',
-    tag: 'RARO',
-  },
-  {
-    id: 4,
-    name: 'Ivory Baron',
-    collection: 'Jungle Legends',
-    price: '0.67',
-    category: 'Colecionáveis',
-    art: '🦊',
-    background: 'from-stone-800 via-amber-800 to-orange-300',
-    tag: '',
-  },
-  {
-    id: 5,
-    name: 'Pixel Warrior',
-    collection: 'Arcade Genesis',
-    price: '0.35',
-    category: 'Gaming',
-    art: '👾',
-    background: 'from-sky-950 via-blue-700 to-cyan-300',
-    tag: '',
-  },
-  {
-    id: 6,
-    name: 'Golden Beat',
-    collection: 'Digital Dreams',
-    price: '0.95',
-    category: 'Arte',
-    art: '🎧',
-    background: 'from-yellow-950 via-amber-700 to-yellow-300',
-    tag: 'DESTAQUE',
-  },
-  {
-    id: 7,
-    name: 'Phantom Fox',
-    collection: 'Mystic Creatures',
-    price: '0.58',
-    category: 'Colecionáveis',
-    art: '🦊',
-    background: 'from-red-950 via-rose-800 to-orange-400',
-    tag: '',
-  },
-  {
-    id: 8,
-    name: 'Neon Guardian',
-    collection: 'Arcade Genesis',
-    price: '1.45',
-    category: 'Gaming',
-    art: '🤖',
-    background: 'from-cyan-950 via-teal-700 to-emerald-300',
-    tag: 'RARO',
-  },
-]
 
 const categories = [
   'Todos',
@@ -105,11 +22,17 @@ const categories = [
 ]
 
 export function HomePage() {
+
+    const {
+      data: nfts = [],
+      isLoading,
+      isError,
+    } = useNfts()
+
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('Todos')
   const [favorites, setFavorites] = useState<number[]>([])
-  const [cart, setCart] = useState<number[]>([])
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { cart, addToCart, removeFromCart, clearCart } = useCart()
   const [maxPrice, setMaxPrice] = useState('')
 
   const filteredNfts = useMemo(() => {
@@ -126,8 +49,8 @@ export function HomePage() {
 
       return matchesSearch && matchesCategory && matchesPrice
     })
-  }, [search, category, maxPrice])
-
+  }, [nfts, search, category, maxPrice])
+  
   function toggleFavorite(id: number) {
     setFavorites((current) =>
       current.includes(id)
@@ -136,118 +59,37 @@ export function HomePage() {
     )
   }
 
-  function addToCart(id: number) {
-    setCart((current) =>
-      current.includes(id) ? current : [...current, id],
-    )
-  }
+    if (isLoading) {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#100e0c] text-[#f6f1e9]">
+      <p className="text-sm text-white/60">
+        Carregando NFTs da Jungle...
+      </p>
+    </main>
+  )
+}
+
+if (isError) {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#100e0c] px-6 text-center text-[#f6f1e9]">
+      <h1 className="text-2xl font-bold">
+        Não foi possível carregar os NFTs
+      </h1>
+      <p className="text-sm text-white/60">
+        Verifique sua conexão e tente novamente.
+      </p>
+    </main>
+  )
+}
+
 
   return (
     <div className="min-h-screen bg-[#100e0c] text-[#f6f1e9]">
-      {/* HEADER */}
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#100e0c]/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between gap-5 px-5 md:px-10">
-          <a href="/" className="flex shrink-0 items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ff792d] text-2xl">
-              🌴
-            </div>
-            <div>
-              <span className="block text-xl font-black tracking-tight">
-                KURIO<span className="text-[#ff792d]">.</span>
-              </span>
-              <span className="hidden text-[9px] tracking-[0.3em] text-white/40 sm:block">
-                DIGITAL COLLECTIBLES
-              </span>
-            </div>
-          </a>
-
-          <nav className="hidden items-center gap-8 text-sm text-white/60 lg:flex">
-            <a href="#explore" className="text-white transition hover:text-[#ff792d]">
-              Explorar
-            </a>
-            <a href="#collections" className="transition hover:text-[#ff792d]">
-              Coleções
-            </a>
-            <a href="#community" className="transition hover:text-[#ff792d]">
-              Comunidade
-            </a>
-          </nav>
-
-          <div className="hidden max-w-[310px] flex-1 md:flex">
-            <label className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3">
-              <Search size={17} className="shrink-0 text-white/40" />
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar NFTs..."
-                aria-label="Buscar NFTs"
-                className="w-full bg-transparent text-sm outline-none placeholder:text-white/30"
-              />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch('')}
-                  aria-label="Limpar busca"
-                >
-                  <X size={15} />
-                </button>
-              )}
-            </label>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={() => document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' })}
-              className="relative rounded-xl border border-white/10 p-3 transition hover:border-[#ff792d]/60"
-              aria-label={`Carrinho, ${cart.length} itens`}
-            >
-              <ShoppingBag size={19} />
-              {cart.length > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#ff792d] px-1 text-[10px] font-bold text-black">
-                  {cart.length}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              className="hidden items-center gap-2 rounded-xl bg-[#ff792d] px-4 py-3 text-sm font-bold text-[#1a1009] transition hover:bg-[#ff9456] sm:flex"
-              onClick={() => alert('A conexão de carteira será implementada na próxima etapa.')}
-            >
-              <Wallet size={17} />
-              Conectar carteira
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="rounded-xl border border-white/10 p-3 lg:hidden"
-              aria-label="Abrir menu"
-            >
-              {mobileMenuOpen ? <X size={19} /> : <Menu size={19} />}
-            </button>
-          </div>
-        </div>
-
-        {mobileMenuOpen && (
-          <div className="border-t border-white/10 bg-[#171310] p-5 lg:hidden">
-            <nav className="flex flex-col gap-4 text-sm text-white/70">
-              <a href="#explore" onClick={() => setMobileMenuOpen(false)}>Explorar NFTs</a>
-              <a href="#collections" onClick={() => setMobileMenuOpen(false)}>Coleções</a>
-              <a href="#community" onClick={() => setMobileMenuOpen(false)}>Comunidade</a>
-              <button
-                type="button"
-                className="flex items-center gap-2 text-left text-[#ff792d]"
-                onClick={() => alert('A conexão de carteira será implementada na próxima etapa.')}
-              >
-                <Wallet size={17} /> Conectar carteira
-              </button>
-            </nav>
-          </div>
-        )}
-      </header>
-
+      <Header
+        search={search}
+        onSearchChange={setSearch}
+        cartCount={cart.length}
+      />
       <main>
         {/* HERO */}
         <section className="mx-auto max-w-[1440px] px-5 pt-8 md:px-10 md:pt-12">
@@ -513,81 +355,17 @@ export function HomePage() {
 
               {/* NFT GRID */}
               <div className="mt-6 grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 xl:grid-cols-3">
-                {filteredNfts.map((nft) => {
-                  const isFavorite = favorites.includes(nft.id)
-                  const isInCart = cart.includes(nft.id)
-
-                  return (
-                    <article
+                  {filteredNfts.map((nft) => (
+                    <NFTCard
                       key={nft.id}
-                      className="group overflow-hidden rounded-2xl border border-white/[0.09] bg-[#191512] transition duration-300 hover:-translate-y-1 hover:border-[#ff792d]/40 hover:shadow-xl hover:shadow-black/20"
-                    >
-                      <div className={`relative flex aspect-[1.12/1] items-center justify-center overflow-hidden bg-gradient-to-br ${nft.background}`}>
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.2),transparent_48%)]" />
-                        <div className="absolute inset-4 rounded-2xl border border-white/15" />
-                        <div className="absolute inset-0 bg-black/5 transition group-hover:bg-transparent" />
-                        <span className="relative select-none text-8xl drop-shadow-2xl transition duration-500 group-hover:scale-110">
-                          {nft.art}
-                        </span>
-
-                        {nft.tag && (
-                          <span className="absolute left-4 top-4 rounded-md border border-white/15 bg-black/40 px-2 py-1 text-[9px] font-bold tracking-widest backdrop-blur">
-                            {nft.tag}
-                          </span>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => toggleFavorite(nft.id)}
-                          aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-                          aria-pressed={isFavorite}
-                          className={`absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur transition ${
-                            isFavorite
-                              ? 'border-rose-400/40 bg-rose-500/20 text-rose-300'
-                              : 'border-white/20 bg-black/30 text-white hover:bg-black/60'
-                          }`}
-                        >
-                          <Heart size={16} fill={isFavorite ? 'currentColor' : 'none'} />
-                        </button>
-
-                        <span className="absolute bottom-4 left-4 rounded-lg border border-white/15 bg-black/35 px-3 py-1.5 text-[10px] text-white/80 backdrop-blur">
-                          {nft.collection}
-                        </span>
-                      </div>
-
-                      <div className="p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <h3 className="truncate font-bold">{nft.name}</h3>
-                            <p className="mt-1 text-xs text-white/40">{nft.category}</p>
-                          </div>
-                          <div className="shrink-0 text-right">
-                            <p className="text-[10px] text-white/35">Preço atual</p>
-                            <p className="mt-1 font-bold text-[#ff9456]">Ξ {nft.price}</p>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => addToCart(nft.id)}
-                          disabled={isInCart}
-                          className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-xs font-bold transition ${
-                            isInCart
-                              ? 'cursor-default border border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
-                              : 'bg-white/[0.06] text-white hover:bg-[#ff792d] hover:text-[#1b1009]'
-                          }`}
-                        >
-                          {isInCart ? '✓ Adicionado ao carrinho' : (
-                            <>
-                              <ShoppingBag size={15} />
-                              Adicionar ao carrinho
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </article>
-                  )
-                })}
+                      nft={nft}
+                      isFavorite={favorites.includes(nft.id)}
+                      isInCart={cart.includes(nft.id)}
+                      onToggleFavorite={toggleFavorite}
+                      onAddToCart={addToCart}
+                      onRemoveFromCart={removeFromCart}
+                    />
+                  ))}
               </div>
 
               {filteredNfts.length === 0 && (
@@ -701,7 +479,7 @@ export function HomePage() {
           </div>
           <button
             type="button"
-            onClick={() => setCart([])}
+            onClick={clearCart}
             className="ml-1 rounded-lg p-2 text-white/40 transition hover:bg-white/5 hover:text-white"
             aria-label="Limpar carrinho"
           >
